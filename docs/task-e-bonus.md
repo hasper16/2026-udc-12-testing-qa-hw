@@ -57,13 +57,13 @@
 
   ```text
   $ npm test
-  ✔ §2 Kyiv time: SCENARIO_BODY instants 10:00 / 10:40 Kyiv on 16.09.2026 are 07:00Z / 07:40Z (7.3833ms)
-  ✔ GET / serves the page with the quote form (23.6959ms)
-  ✔ T1 T3 T5 T7: reduced rider, classic, 40 min, returned at X01 — quote 17500 (8.4167ms)
-  ✔ T9: receipt — separate discount line, separate fee line, «До сплати» 175,00 грн (3.665ms)
+  ✔ §2 Kyiv time: SCENARIO_BODY instants 10:00 / 10:40 Kyiv on 16.09.2026 are 07:00Z / 07:40Z (8.013ms)
+  ✔ GET / serves the page with the quote form (27.1924ms)
+  ✔ T1 T3 T5 T7: reduced rider, classic, 40 min, returned at X01 — quote 17500 (11.1826ms)
+  ✔ T9: receipt — separate discount line, separate fee line, «До сплати» 175,00 грн (4.1959ms)
   …
-  ℹ tests 74
-  ℹ pass 74
+  ℹ tests 75
+  ℹ pass 75
   ℹ fail 0
   ```
 

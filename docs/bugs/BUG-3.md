@@ -61,4 +61,4 @@ cd /c/ws12-runs/ws12-main && node -e 'import("./app/src/tariff.js").then(({ quot
   велосипеда; виправлено: безкоштовні хвилини лише для класичного.
 - Наявний тест, що стверджував хибну поведінку: `app/test/unit/tariff.test.js` ›
   `subscribers ride the first 45 minutes free` (40 хв на ebike = 0) — оновлено за
-  `docs/spec/tariffs.md:74–77` у тому ж коміті, див. `docs/bugs/README.md`.
+  `docs/spec/tariffs.md:74–77` у тому ж коміті, див. `docs/bugs/README.md` (за рев'ю розділено на два тести: classic і ebike).

@@ -25,7 +25,7 @@
   поведінки залежить від відкритих питань.
 - Правил покрито автотестами: 10 з 10 (і розділ 4) — 49 тестів у `app/test/spec/` (7 файлів;
   `grep -c "^test(" app/test/spec/*.test.js` → 5 + 8 + 5 + 6 + 10 + 9 + 6), усі зелені після
-  виправлень. `npm test` → `ℹ tests 74`, `ℹ pass 74`, `ℹ fail 0` (нестабільний
+  виправлень. `npm test` → `ℹ tests 75`, `ℹ pass 75`, `ℹ fail 0` (нестабільний
   `app/test/integration/receipt.test.js` виправлено в коміті `4784296`, `docs/triage.md`,
   розділ 1). Кейси з відкритих питань Q-1…Q-10 не автоматизовано; Q-11 — лише два тести `ASSUMPTION:` у `tariff-s4.test.js`.
 - E2E (Task E): `app/test/e2e/reduced-out-of-zone.test.js` — 4 тести; два перевіряють
