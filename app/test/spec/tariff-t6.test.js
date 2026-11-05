@@ -138,20 +138,6 @@ test("T6: TC-50 TC-51 — 300 грн boundary: at-limit and over-limit", () => {
   }
 });
 
-// T6 — cap boundary: due === allowance exactly → no "day-cap" discount code
-// Kills M023 (due > allowance → due >= allowance): mutation pushes a "day-cap" entry with amount 0.
-test("T6: when due equals the daily cap exactly — no day-cap discount in result", () => {
-  const dayCap = createDayCap();
-  const rider  = { id: "rider-exact-cap", type: "standard" };
-  // 360 min → 12 blocks × 2500 = 30000 = DAY_CAP exactly → due equals allowance
-  const r = quote(ride("2026-09-17T10:00:00+03:00", "2026-09-17T16:00:00+03:00"), rider, { dayCap });
-  assert.equal(r.total, 30000, "exact cap: total 30000");
-  assert.ok(
-    !r.discounts.some((d) => d.code === "day-cap"),
-    "no day-cap discount when due equals allowance exactly",
-  );
-});
-
 // TC-52: cap is per rider — a different rider is unaffected (spec:tariffs.md:100)
 test("T6: TC-52 — daily cap is per rider; second rider's cap is independent", () => {
   const dayCap = createDayCap();

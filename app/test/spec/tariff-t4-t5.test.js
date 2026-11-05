@@ -92,9 +92,12 @@ test("T5: TC-34 tie-break — subscription discount code takes priority over equ
   // 50 min classic: timeCharge = 5000; subscription amount = 2500; reduced = 2500 → tie
   const r = quote(ride("2026-09-16T10:00:00+03:00", "2026-09-16T10:50:00+03:00"), conc);
   assert.equal(r.total, 2500, "TC-34 tie: total 2500");
-  assert.ok(
-    r.discounts.some((d) => d.code === "subscription"),
-    "TC-34 tie: discount code must be 'subscription', not 'reduced'",
+  // Task C: was assert.ok(r.discounts.some(...)) — strengthened to the exact list from TC-34
+  // (docs/test-cases.md: subscription line −25,00 грн, no reduced line; spec:tariffs.md:91)
+  assert.deepEqual(
+    r.discounts,
+    [{ code: "subscription", amount: 2500 }],
+    "TC-34 tie: only the subscription discount, not 'reduced'",
   );
 });
 

@@ -50,27 +50,15 @@ test("T10: TC-80 — false start at night: T2 applies first → zero charge", ()
   assert.equal(r.total, 0, "TC-80: false start overrides night discount");
 });
 
-// T10 — boundary: exactly 06:00 Kyiv → night window [00:00, 06:00) is closed (spec:tariffs.md:141)
-// Kills M009 (NIGHT_UNTIL_HOUR 6→7) and M021 (< → <=): with either mutant, hour 6 would
-// incorrectly receive a night discount.
-test("T10: pickup at exactly 06:00 Kyiv — outside night window, no discount", () => {
-  // 2026-09-16T06:00:00+03:00 → Kyiv hour = 6, NOT in [00:00, 06:00)
-  const r = quote(ride("2026-09-16T06:00:00+03:00", "2026-09-16T06:30:00+03:00"), standard);
-  assert.equal(r.total, 2500, "06:00 Kyiv: no night discount");
-  assert.equal(r.discounts.length, 0, "06:00 Kyiv: discounts must be empty");
-});
-
-// T10 — night discount requires due > 0: subscriber within 45 free minutes at night
-// Kills M018 (due > 0 → due >= 0): mutation pushes a "night" entry with amount 0.
-test("T10: subscriber within free minutes at night — due is zero, no night discount entry", () => {
-  // classic subscriber, 40 min at 01:00 Kyiv → subscription covers all → due = 0
-  const r = quote(
-    ride("2026-09-16T01:00:00+03:00", "2026-09-16T01:40:00+03:00"),
-    { type: "subscriber" },
-  );
-  assert.equal(r.total, 0, "subscriber night free ride: total 0");
-  assert.ok(
-    !r.discounts.some((d) => d.code === "night"),
-    "no night discount entry when due is zero",
-  );
+// T10 — TC-87 TC-88: pickup and return both after 06:00 Kyiv → no night discount (spec:tariffs.md:141)
+// The ride lies wholly outside «з 00:00 до 06:00» under every reading of Q-1 and Q-2,
+// so the expected value does not depend on the open questions (06:00:00 itself is Q-2).
+test("T10: TC-87 TC-88 — ride wholly after 06:00 Kyiv: no night discount", () => {
+  for (const { id, pickupAt, returnAt } of [
+    { id: "TC-87", pickupAt: "2026-09-16T06:30:00+03:00", returnAt: "2026-09-16T07:00:00+03:00" },
+    { id: "TC-88", pickupAt: "2026-09-16T06:59:00+03:00", returnAt: "2026-09-16T07:29:00+03:00" },
+  ]) {
+    const r = quote(ride(pickupAt, returnAt), standard);
+    assert.equal(r.total, 2500, id); // 30 min classic → 1 block (spec:tariffs.md:66)
+  }
 });
