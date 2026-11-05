@@ -103,15 +103,15 @@ test("T6: TC-48 — reduced fare: cap on post-discount time charge; three rides 
   const rider  = { id: "rider-tc48", type: "reduced" };
   const cases = [
     // 600 min → 20 blocks = 50000 − 50% = 25000 ≤ cap → 25000
-    { pu: "2026-09-17T08:00:00+03:00", ret: "2026-09-17T18:00:00+03:00", exp: 25000 },
+    { id: "TC-48 ride 1", pu: "2026-09-17T08:00:00+03:00", ret: "2026-09-17T18:00:00+03:00", exp: 25000 },
     // 120 min → 4 blocks = 10000 − 50% = 5000 → cap rem = 5000 → 5000
-    { pu: "2026-09-17T19:00:00+03:00", ret: "2026-09-17T21:00:00+03:00", exp: 5000  },
+    { id: "TC-48 ride 2", pu: "2026-09-17T19:00:00+03:00", ret: "2026-09-17T21:00:00+03:00", exp: 5000  },
     // 30 min → 2500 − 50% = 1250 → cap rem = 0 → 0
-    { pu: "2026-09-17T21:30:00+03:00", ret: "2026-09-17T22:00:00+03:00", exp: 0     },
+    { id: "TC-48 ride 3", pu: "2026-09-17T21:30:00+03:00", ret: "2026-09-17T22:00:00+03:00", exp: 0     },
   ];
-  for (const { pu, ret, exp } of cases) {
+  for (const { id, pu, ret, exp } of cases) {
     const r = quote(ride(pu, ret), rider, { dayCap });
-    assert.equal(r.total, exp, `TC-48 ride (expected ${exp})`);
+    assert.equal(r.total, exp, id);
   }
 });
 
