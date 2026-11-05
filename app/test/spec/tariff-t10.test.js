@@ -1,0 +1,51 @@
+// T10 — night discount: −30 % on time charge for rides 00:00–06:00 Kyiv time
+// Expected values: docs/test-cases.md, docs/spec/tariffs.md
+import test from "node:test";
+import assert from "node:assert/strict";
+import { quote } from "../../src/tariff.js";
+
+const standard = { type: "standard" };
+const ride = (pickupAt, returnAt, bike = "classic", returnStation = "S01") =>
+  ({ pickupAt, returnAt, bike, returnStation });
+
+// T10 — TC-72 to TC-77: various night and day rides (spec:tariffs.md:141,143)
+// Key: discount applies when pickup is in [00:00, 06:00) Kyiv wall-clock time
+test("T10: TC-72 to TC-77 — night window [00:00, 06:00) Kyiv: 30 % discount", () => {
+  for (const { id, pickupAt, returnAt, bike, expTotal } of [
+    // 01:10–01:40 Kyiv → 2500 − 30%
+    { id: "TC-72", pickupAt: "2026-09-16T01:10:00+03:00", returnAt: "2026-09-16T01:40:00+03:00", bike: "classic", expTotal: 1750 },
+    // 00:00–00:30 Kyiv → 00:00 is in window
+    { id: "TC-73", pickupAt: "2026-09-16T00:00:00+03:00", returnAt: "2026-09-16T00:30:00+03:00", bike: "classic", expTotal: 1750 },
+    // 05:29–05:59 Kyiv → entire ride before 06:00
+    { id: "TC-74", pickupAt: "2026-09-16T05:29:00+03:00", returnAt: "2026-09-16T05:59:00+03:00", bike: "classic", expTotal: 1750 },
+    // 23:29–23:59 Kyiv → outside window → no discount
+    { id: "TC-75", pickupAt: "2026-09-16T23:29:00+03:00", returnAt: "2026-09-16T23:59:00+03:00", bike: "classic", expTotal: 2500 },
+    // 10:00–10:30 Kyiv → day → no discount
+    { id: "TC-76", pickupAt: "2026-09-16T10:00:00+03:00", returnAt: "2026-09-16T10:30:00+03:00", bike: "classic", expTotal: 2500 },
+    // ebike 02:00–02:30 → 4000 − 30%
+    { id: "TC-77", pickupAt: "2026-09-16T02:00:00+03:00", returnAt: "2026-09-16T02:30:00+03:00", bike: "ebike",   expTotal: 2800 },
+  ]) {
+    const r = quote(ride(pickupAt, returnAt, bike), standard);
+    assert.equal(r.total, expTotal, id);
+  }
+});
+
+// T10 — TC-78: UTC "night" but Kyiv "day" — discount based on Kyiv time (spec:tariffs.md:37)
+test("T10: TC-78 — 04:00Z = 07:00 Kyiv: UTC is night but Kyiv is day → no discount", () => {
+  // 2026-09-16T04:00:00Z = 2026-09-16T07:00:00+03:00 (Kyiv) → hour 7, no discount
+  const r = quote(ride("2026-09-16T04:00:00Z", "2026-09-16T04:30:00Z"), standard);
+  assert.equal(r.total, 2500, "TC-78: Kyiv 07:00 is daytime");
+});
+
+// T10 — TC-79: EET (UTC+2) night — 23:10Z = 01:10 Kyiv (+02:00) → discount (spec:tariffs.md:37)
+test("T10: TC-79 — 23:10Z = 01:10 Kyiv EET: night discount applies", () => {
+  const r = quote(ride("2026-11-09T23:10:00Z", "2026-11-09T23:40:00Z"), standard);
+  assert.equal(r.total, 1750, "TC-79: 2500 − 30 %");
+});
+
+// T10 — TC-80: false start in night window — false start rule wins (spec:tariffs.md:54)
+test("T10: TC-80 — false start at night: T2 applies first → zero charge", () => {
+  // 01:00–01:02 Kyiv → 2 min exactly → false start → 0 (not 1750)
+  const r = quote(ride("2026-09-16T01:00:00+03:00", "2026-09-16T01:02:00+03:00"), standard);
+  assert.equal(r.total, 0, "TC-80: false start overrides night discount");
+});
