@@ -49,10 +49,10 @@ test("subscription on a long e-bike ride", () => {
   assert.ok(result.total < result.timeCharge);
 });
 
-test("reduced fare for a ride returned outside the zone", () => {
+test("reduced fare for a ride returned outside the zone: the fee is not discounted (T5)", () => {
   const result = quote(ride("2026-09-16T07:00:00Z", "2026-09-16T07:40:00Z", { returnStation: "X01" }), { type: "reduced" });
-  assert.equal(result.total, 10000);
-  assert.equal(result.fees[0].amount, 7500);
+  assert.equal(result.total, 17500); // 2 blocks = 5000 − 50 % = 2500, + fee 15000
+  assert.equal(result.fees[0].amount, 15000);
 });
 
 test("night rides get 30 % off", () => {
