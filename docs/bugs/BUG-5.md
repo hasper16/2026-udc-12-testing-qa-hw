@@ -67,4 +67,5 @@ cd /c/ws12-runs/ws12-main && node -e 'Promise.all([import("./app/src/tariff.js")
   використовується в `app/src/tariff.js:50` для нічної знижки).
 - Наявний `app/test/unit/day-cap.test.js` › `the day of a ride is the date of its pickup`
   (`2026-09-16T08:00:00Z` → `2026-09-16`) лишився зеленим: 08:00Z = 11:00 за Києвом, дата
-  та сама.
+  та сама. Після рев'ю в цей тест додано моменти, де дати різні: `2026-09-16T21:00:00Z` →
+  `2026-09-17` (EEST) і `2026-10-27T22:00:00Z` → `2026-10-28` (EET).

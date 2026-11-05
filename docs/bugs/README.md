@@ -56,7 +56,7 @@ of rides ends with the amount due` — у `ai-runs/b2-run.txt` зелений (�
 AssertionError [ERR_ASSERTION]: ebike, 60 min from 2026-09-21T13:11:00.000Z: got "До сплати .......................... 80,00 грн", expected 120,00 грн
 ```
 
-У Task B тест не змінювався. У Task D причину знайдено і виправлено в самому тесті (хибний оракул `floor + 1` на межах 30/60 хв + невизначені випадкові дані) — коміт `4784296`, 0 падінь з 50 (`ai-runs/d-repeat-after.txt`); деталі — `docs/triage.md`, розділ 1.
+У Task B тест не змінювався. У Task D причину знайдено і виправлено в самому тесті (хибний оракул `floor + 1` на межах 30/60 хв + невизначені випадкові дані) — коміт `4784296`, 0 падінь з 50 (`ai-runs/d-repeat-after.txt`); деталі — `docs/triage.md`, розділ 1. Тепер тест називається `T1 T3 T9: the receipt shows the amount due for rides at the 30 and 60 min block boundaries`.
 
 Після всіх виправлень (коміт `63c2363`; прогін, у якому нестабільний тест випав зеленим):
 

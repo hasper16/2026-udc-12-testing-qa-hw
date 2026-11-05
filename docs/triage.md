@@ -4,7 +4,7 @@
 
 ## 1. Нестабільний тест локально
 
-- **Який тест:** `app/test/integration/receipt.test.js` › `every receipt of a week of rides ends with the amount due`
+- **Який тест:** `app/test/integration/receipt.test.js` › `every receipt of a week of rides ends with the amount due` (назва на момент падінь; тепер — `T1 T3 T9: the receipt shows the amount due for rides at the 30 and 60 min block boundaries`)
 - **Як часто падав:** 6 з 30 (`ai-runs/d-repeat-before.txt`: «Червоних прогонів: 6 з 30 (№ 8, 10, 19, 22, 23, 25)»; решта 70 тестів — зелені в усіх прогонах)
 - **Повідомлення про помилку:**
   - `ebike, 30 min from 2026-09-21T14:24:00.000Z: got "До сплати .......................... 40,00 грн", expected 80,00 грн`
@@ -42,7 +42,8 @@
   входами, що падали в `d-repeat-before.txt`); очікування — літерали в копійках
   (`assert.equal(q.total, 2500, id)`) і повний рядок «До сплати» (замість `endsWith`), з
   посиланням на `tariffs.md:62`, `:66–67`. Формули з коду в тесті більше немає. Назву тесту
-  збережено. Чому це усуває причину, а не ховає: оракул тепер — значення зі специфікації, а
+  після рев'ю змінено на `T1 T3 T9: the receipt shows the amount due for rides at the 30 and 60 min block boundaries` — стара («a week of rides») описувала
+  випадкові поїздки, яких у тесті вже немає. Чому це усуває причину, а не ховає: оракул тепер — значення зі специфікації, а
   межі 30 і 60 хв перевіряються в **кожному** прогоні, а не в ~21 % прогонів; випадковості
   немає, тож той самий код дає той самий вердикт. Без `retry`, `sleep`/`setTimeout`, `skip`,
   без послаблення перевірки (перевірка стала суворішою: `equal` суми і повний рядок).

@@ -24,7 +24,7 @@ const RIDES = [
   { id: "ebike-61", pickupAt: "2026-09-21T11:52:00Z", returnAt: "2026-09-21T12:53:00Z", bike: "ebike", due: 12000, line: "До сплати ......................... 120,00 грн" },
 ];
 
-test("every receipt of a week of rides ends with the amount due", () => {
+test("T1 T3 T9: the receipt shows the amount due for rides at the 30 and 60 min block boundaries", () => {
   for (const { id, due, line, ...times } of RIDES) {
     const q = quote(ride({ ...times }), rider());
 

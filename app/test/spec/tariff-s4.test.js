@@ -37,8 +37,9 @@ test("§4: TC-82 TC-83 — unknown bike type or rider category → QuoteError", 
 });
 
 // §4 — null ride object → rejected
-// Kills M067 (|| → && in !ride || typeof ride !== "object"): with &&, null passes because
-// typeof null === "object", so the second operand is false and no error is thrown.
+// Kills M067 (|| → && in !ride || typeof ride !== "object"): with &&, the guard is skipped for
+// null (typeof null === "object", so the second operand is false); instant(ride.pickupAt) then
+// reads null.pickupAt and throws TypeError, not QuoteError, so assert.throws(…, QuoteError) fails.
 test("§4: null ride → QuoteError", () => {
   assert.throws(
     () => quote(null, { type: "standard" }),
@@ -48,8 +49,9 @@ test("§4: null ride → QuoteError", () => {
 });
 
 // §4 — date-only string (no time part) → rejected
-// Kills M078 (|| → && in invalid date string check): with &&, a string that fails the regex
-// does not throw because "typeof string !== 'string'" is false and false && true = false.
+// Kills M078 (|| → && in invalid date string check): with &&, the guard is skipped for any
+// string (typeof value !== "string" is false, false && … = false); Date.parse("2026-09-16") is a
+// valid instant, so quote() returns a price instead of throwing and assert.throws fails.
 test("§4: date-only pickupAt (no time offset) → QuoteError", () => {
   assert.throws(
     () => quote(
