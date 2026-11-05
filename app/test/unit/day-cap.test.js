@@ -11,3 +11,10 @@ test("charges recorded for a day reduce what is left of the cap", () => {
 test("the day of a ride is the date of its pickup", () => {
   assert.equal(dayKey("2026-09-16T08:00:00Z"), "2026-09-16");
 });
+
+// chargedOn with no prior record must return 0
+// Kills M086 (?? 0 → ?? 1): mutation returns 1 for a rider with no charges.
+test("chargedOn returns 0 for a rider with no charges on that day", () => {
+  const ledger = createDayCap();
+  assert.equal(ledger.chargedOn("unknown-rider", "2026-09-16"), 0);
+});

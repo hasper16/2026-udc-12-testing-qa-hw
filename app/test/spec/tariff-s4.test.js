@@ -36,6 +36,31 @@ test("§4: TC-82 TC-83 — unknown bike type or rider category → QuoteError", 
   }
 });
 
+// §4 — null ride object → rejected
+// Kills M067 (|| → && in !ride || typeof ride !== "object"): with &&, null passes because
+// typeof null === "object", so the second operand is false and no error is thrown.
+test("§4: null ride → QuoteError", () => {
+  assert.throws(
+    () => quote(null, { type: "standard" }),
+    QuoteError,
+    "null ride must throw QuoteError",
+  );
+});
+
+// §4 — date-only string (no time part) → rejected
+// Kills M078 (|| → && in invalid date string check): with &&, a string that fails the regex
+// does not throw because "typeof string !== 'string'" is false and false && true = false.
+test("§4: date-only pickupAt (no time offset) → QuoteError", () => {
+  assert.throws(
+    () => quote(
+      { pickupAt: "2026-09-16", returnAt: "2026-09-16T10:30:00Z", bike: "classic", returnStation: "S01" },
+      { type: "standard" },
+    ),
+    QuoteError,
+    "date-only string must throw QuoteError",
+  );
+});
+
 // §4 — TC-84 to TC-86: station not in appendix A → rejected (spec:tariffs.md:149)
 test("§4: TC-84 to TC-86 — station absent from appendix A → QuoteError", () => {
   for (const { id, station } of [

@@ -84,6 +84,20 @@ test("T5: TC-33 to TC-39 — subscriber+concession: cheaper of subscription vs r
   }
 });
 
+// T5 — tie-breaking: when subscription and reduced give equal discount, subscription wins
+// Kills M054 (plan.amount > best.amount → plan.amount >= best.amount): with >= the later
+// plan in the array (reduced) would win instead of subscription.
+test("T5: TC-34 tie-break — subscription discount code takes priority over equal reduced", () => {
+  const conc = { type: "subscriber", concession: true };
+  // 50 min classic: timeCharge = 5000; subscription amount = 2500; reduced = 2500 → tie
+  const r = quote(ride("2026-09-16T10:00:00+03:00", "2026-09-16T10:50:00+03:00"), conc);
+  assert.equal(r.total, 2500, "TC-34 tie: total 2500");
+  assert.ok(
+    r.discounts.some((d) => d.code === "subscription"),
+    "TC-34 tie: discount code must be 'subscription', not 'reduced'",
+  );
+});
+
 // T5 — TC-40: reduced + 25-hour ride — unreturned fee not discounted (spec:tariffs.md:87)
 test("T5: TC-40 — reduced fare + T6 cap + T8 fee: fee not discounted", () => {
   // 25 h → 50 blocks = 125000 − 50% = 62500 → cap 30000; unreturned 200000 unchanged → 230000
