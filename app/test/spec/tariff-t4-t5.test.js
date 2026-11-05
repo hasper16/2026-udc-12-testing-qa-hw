@@ -63,11 +63,14 @@ test("T5: TC-32 — reduced fare does not apply to out-of-zone fee", () => {
 // T5 — TC-33 to TC-39: subscriber + concession — cheaper of subscription vs reduced (spec:tariffs.md:90-94)
 test("T5: TC-33 to TC-39 — subscriber+concession: cheaper of subscription vs reduced wins", () => {
   const conc = { type: "subscriber", concession: true };
-  for (const { id, returnAt, bike, expTotal } of [
+  for (const { id, returnAt, bike, expTotal, expDiscounts } of [
     // TC-33: 80 min → sub 5000, reduced 3750 → reduced wins
     { id: "TC-33", returnAt: "2026-09-16T11:20:00+03:00", bike: "classic", expTotal: 3750 },
-    // TC-34: 50 min → sub 2500 = reduced 2500 → tie → subscription wins (spec:tariffs.md:91)
-    { id: "TC-34", returnAt: "2026-09-16T10:50:00+03:00", bike: "classic", expTotal: 2500 },
+    // TC-34: 50 min → sub 2500 = reduced 2500 → tie → subscription wins (spec:tariffs.md:90-91);
+    // docs/test-cases.md TC-34: only the subscription discount line (−25,00 грн), no reduced line.
+    // Kills M054 (plan.amount > best.amount → >=): with >= the later plan (reduced) wins the tie.
+    { id: "TC-34", returnAt: "2026-09-16T10:50:00+03:00", bike: "classic", expTotal: 2500,
+      expDiscounts: [{ code: "subscription", amount: 2500 }] },
     // TC-35: 91 min → sub 5000 = reduced 5000 → subscription wins
     { id: "TC-35", returnAt: "2026-09-16T11:31:00+03:00", bike: "classic", expTotal: 5000 },
     // TC-36: 75 min → sub 2500 < reduced 3750 → subscription wins
@@ -81,24 +84,9 @@ test("T5: TC-33 to TC-39 — subscriber+concession: cheaper of subscription vs r
   ]) {
     const r = quote(ride("2026-09-16T10:00:00+03:00", returnAt, bike), conc);
     assert.equal(r.total, expTotal, id);
+    // The exact discount lines are fixed by docs/test-cases.md only for TC-34.
+    if (expDiscounts) assert.deepEqual(r.discounts, expDiscounts, `${id}: discounts`);
   }
-});
-
-// T5 — tie-breaking: when subscription and reduced give equal discount, subscription wins
-// Kills M054 (plan.amount > best.amount → plan.amount >= best.amount): with >= the later
-// plan in the array (reduced) would win instead of subscription.
-test("T5: TC-34 tie-break — subscription discount code takes priority over equal reduced", () => {
-  const conc = { type: "subscriber", concession: true };
-  // 50 min classic: timeCharge = 5000; subscription amount = 2500; reduced = 2500 → tie
-  const r = quote(ride("2026-09-16T10:00:00+03:00", "2026-09-16T10:50:00+03:00"), conc);
-  assert.equal(r.total, 2500, "TC-34 tie: total 2500");
-  // Task C: was assert.ok(r.discounts.some(...)) — strengthened to the exact list from TC-34
-  // (docs/test-cases.md: subscription line −25,00 грн, no reduced line; spec:tariffs.md:91)
-  assert.deepEqual(
-    r.discounts,
-    [{ code: "subscription", amount: 2500 }],
-    "TC-34 tie: only the subscription discount, not 'reduced'",
-  );
 });
 
 // T5 — TC-40: reduced + 25-hour ride — unreturned fee not discounted (spec:tariffs.md:87)

@@ -36,11 +36,15 @@ test("§4: TC-82 TC-83 — unknown bike type or rider category → QuoteError", 
   }
 });
 
-// §4 — null ride object → rejected
+// §4 — null ride object. §4 lists four cases (docs/spec/tariffs.md:147-149); a missing ride is
+// not among them.
+// ПРИПУЩЕННЯ: без моментів взяття й повернення T1 (tariffs.md:45) не обчислити, тож запит
+// відхиляється як некоректні дані §4 — з контракту API (app/src/tariff.js:4-5), не зі специфікації;
+// ПИТАННЯ: Q-11 (docs/test-cases.md) — чи перелік §4 вичерпний.
 // Kills M067 (|| → && in !ride || typeof ride !== "object"): with &&, the guard is skipped for
 // null (typeof null === "object", so the second operand is false); instant(ride.pickupAt) then
 // reads null.pickupAt and throws TypeError, not QuoteError, so assert.throws(…, QuoteError) fails.
-test("§4: null ride → QuoteError", () => {
+test("ASSUMPTION: §4: null ride → QuoteError", () => {
   assert.throws(
     () => quote(null, { type: "standard" }),
     QuoteError,
@@ -48,11 +52,14 @@ test("§4: null ride → QuoteError", () => {
   );
 });
 
-// §4 — date-only string (no time part) → rejected
+// §4 — date-only string (no time part). §4 (docs/spec/tariffs.md:147-149) does not list it.
+// ПРИПУЩЕННЯ: «Взяття — момент» (tariffs.md:26), дата без часу — не момент, тож запит
+// відхиляється як некоректні дані §4 — з контракту API (ISO 8601 зі зсувом, AGENTS.md), не зі
+// специфікації; ПИТАННЯ: Q-11 (docs/test-cases.md) — чи перелік §4 вичерпний.
 // Kills M078 (|| → && in invalid date string check): with &&, the guard is skipped for any
 // string (typeof value !== "string" is false, false && … = false); Date.parse("2026-09-16") is a
 // valid instant, so quote() returns a price instead of throwing and assert.throws fails.
-test("§4: date-only pickupAt (no time offset) → QuoteError", () => {
+test("ASSUMPTION: §4: date-only pickupAt (no time offset) → QuoteError", () => {
   assert.throws(
     () => quote(
       { pickupAt: "2026-09-16", returnAt: "2026-09-16T10:30:00Z", bike: "classic", returnStation: "S01" },

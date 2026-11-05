@@ -112,7 +112,9 @@ cd /c/ws12-runs/check/app && node --test test/unit/tariff.test.js 2>&1 | grep -E
 | `app/test/unit/tariff.test.js` › `subscribers ride the first 45 minutes free` → тепер `subscribers ride the first 45 minutes free on a classic bike; an e-bike has no free minutes, 20 % off (T4)` | абонент, 40 хв: 0 і на класичному, і на електровелосипеді | `docs/spec/tariffs.md:74–77`: 45 безкоштовних хвилин — лише класичний; електровелосипед — −20 %, безкоштовних хвилин немає → 40 хв = 2 блоки 8 000 − 20 % = 6 400 | таблиця `{ bike, total }`: classic → 0 (як було), ebike → 6400; назва; коміт `4b294a8` (BUG-3) |
 | `app/test/unit/tariff.test.js` › `reduced fare for a ride returned outside the zone` → тепер `reduced fare for a ride returned outside the zone: the fee is not discounted (T5)` | пільговий, 40 хв, X01: збір 7 500, разом 10 000 | `docs/spec/tariffs.md:87`: пільга не поширюється на збори → збір 15 000 (`:112`); 2 блоки 5 000 − 50 % = 2 500; разом 17 500 | `fees[0].amount` 7500 → 15000, `total` 10000 → 17500, назва; коміт `6f9bc58` (BUG-4) |
 
-Тести в `app/test/spec/` не змінювалися: усі 13 червоних були правими за специфікацією.
+У Task B тести в `app/test/spec/` не змінювалися: усі 13 червоних були правими за специфікацією.
+Пізніші зміни цих тестів (Task C і рев'ю) — з причинами в `docs/test-quality.md`, розділ 3
+(«Що агент видалив, пропустив або послабив» і «Зміни тестів за рев'ю»).
 
 ## Тести з коду після виправлення (`ai-runs/b1-rerun.txt`)
 
