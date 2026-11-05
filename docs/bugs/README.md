@@ -112,6 +112,18 @@ cd /c/ws12-runs/check/app && node --test test/unit/tariff.test.js 2>&1 | grep -E
 | `app/test/unit/tariff.test.js` › `subscribers ride the first 45 minutes free` → тепер `subscribers ride the first 45 minutes free on a classic bike; an e-bike has no free minutes, 20 % off (T4)`; за рев'ю розділено на `subscribers ride the first 45 minutes free on a classic bike (T4)` і `subscribers get 20 % off on an e-bike, with no free minutes (T4)` (`docs/test-quality.md`, «Зміни тестів за рев'ю») | абонент, 40 хв: 0 і на класичному, і на електровелосипеді | `docs/spec/tariffs.md:74–77`: 45 безкоштовних хвилин — лише класичний; електровелосипед — −20 %, безкоштовних хвилин немає → 40 хв = 2 блоки 8 000 − 20 % = 6 400 | таблиця `{ bike, total }`: classic → 0 (як було), ebike → 6400; назва; коміт `4b294a8` (BUG-3) |
 | `app/test/unit/tariff.test.js` › `reduced fare for a ride returned outside the zone` → тепер `reduced fare for a ride returned outside the zone: the fee is not discounted (T5)` | пільговий, 40 хв, X01: збір 7 500, разом 10 000 | `docs/spec/tariffs.md:87`: пільга не поширюється на збори → збір 15 000 (`:112`); 2 блоки 5 000 − 50 % = 2 500; разом 17 500 | `fees[0].amount` 7500 → 15000, `total` 10000 → 17500, назва; коміт `6f9bc58` (BUG-4) |
 
+### Інші зміни в `app/test/unit/`
+
+`app/test/unit/day-cap.test.js` після виправлення BUG-5 (`63c2363`) не почервонів: його
+єдиний момент `2026-09-16T08:00:00Z` має однакову дату в UTC і за Києвом, тож тест проходив
+і з дефектом, і без нього. Його змінено пізніше. Жоден тест не видалено, і жодне очікування
+не послаблено: лише додано випадки і новий тест.
+
+| Тест (файл › назва) | Що змінили | Чому (специфікація) | Коли |
+|---|---|---|---|
+| `app/test/unit/day-cap.test.js` › `the day of a ride is the date of its pickup` | до випадку `08:00Z` → `2026-09-16` додано `2026-09-16T21:00:00Z` → `2026-09-17` (літній час EEST) і `2026-10-27T22:00:00Z` → `2026-10-28` (зимовий час EET) | доба для денного ліміту — календарна дата за київським часом (`docs/spec/tariffs.md:34`), а поїздка належить до доби, коли її взяли (`:101–102`). Старі дані не розрізняли дату за UTC і за Києвом, тож не ловили BUG-5. На коді з `main` оновлений тест червоний: `dayKey("2026-09-16T21:00:00Z")` повертає `2026-09-16` замість `2026-09-17` | рев'ю, коміт `deef265` (`docs/test-quality.md`: розділ 2, запах 10; розділ 3, «Зміни тестів за рев'ю») |
+| `app/test/unit/day-cap.test.js` › `chargedOn returns 0 for a rider with no charges on that day` (новий) | новий тест: користувачу без поїздок за добу нараховано 0 | денний ліміт рахується від суми нарахувань за добу (T6, `docs/spec/tariffs.md:100`): без поїздок сума — 0, тож ліміт лишається повним | Task C, коміт `6b50650` (`docs/test-quality.md`, розділ 3, «Що агент видалив, пропустив або послабив», рядок 7) |
+
 У Task B тести в `app/test/spec/` не змінювалися: усі 13 червоних були правими за специфікацією.
 Пізніші зміни цих тестів (Task C і рев'ю) — з причинами в `docs/test-quality.md`, розділ 3
 («Що агент видалив, пропустив або послабив» і «Зміни тестів за рев'ю»).
