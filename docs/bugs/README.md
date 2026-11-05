@@ -46,11 +46,19 @@
 `docs/test-cases.md` не автоматизовано, тож червоних тестів-питань немає).
 
 **Нестабільний тест** `app/test/integration/receipt.test.js` › `every receipt of a week
-of rides ends with the amount due` — у `ai-runs/b2-run.txt` зелений (рядок 5), у всіх
-прогонах `npm test` під час виправлень теж був зелений. Не змінювався; ним займаємося в
-Task D.
+of rides ends with the amount due` — у `ai-runs/b2-run.txt` зелений (рядок 5), але
+червоніє то так, то ні без жодних змін у коді (тест бере випадкові поїздки з
+`randomRides`). 15 прогонів `node --test test/integration/receipt.test.js` з `app/`: на
+копії початкового коду (`main`) — 4 червоні з 15, на виправленому коді (`63c2363`) — теж
+4 з 15. Приклад падіння:
 
-Після всіх виправлень (коміт `63c2363`):
+```text
+AssertionError [ERR_ASSERTION]: ebike, 60 min from 2026-09-21T13:11:00.000Z: got "До сплати .......................... 80,00 грн", expected 120,00 грн
+```
+
+Тест не змінювався; ним займаємося в Task D.
+
+Після всіх виправлень (коміт `63c2363`; прогін, у якому нестабільний тест випав зеленим):
 
 ```bash
 npm test 2>&1 | grep -E "^ℹ (tests|pass|fail)"
