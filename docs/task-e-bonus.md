@@ -48,7 +48,7 @@
 
 | Тест (`reduced-out-of-zone.test.js` ›) | Що перевіряє | Специфікація |
 |---|---|---|
-| `§2 Kyiv time: SCENARIO_BODY instants 10:00 / 10:40 Kyiv on 16.09.2026 are 07:00Z / 07:40Z` | Вхід: моменти у фікстурі `SCENARIO_BODY` = 07:00Z / 07:40Z. Саму `kyivToIso` сторінки тест не виконує: вона працює лише при надсиланні форми, а форму тест не заповнює | `tariffs.md:37` |
+| `fixture only: SCENARIO_BODY sends 10:00 / 10:40 Kyiv on 16.09.2026 (EEST) as 07:00Z / 07:40Z` | Лише фікстуру: моменти в `SCENARIO_BODY` = 07:00Z / 07:40Z. Ні `app/src`, ні `kyivToIso` сторінки тест не виконує: `kyivToIso` працює лише при надсиланні форми, а форму тест не заповнює. Київський час у тарифі перевіряють `test/spec` (T6, T10) | `tariffs.md:37` |
 | `GET / serves the page with the quote form` | 200, `text/html; charset=utf-8`, форма `quote-form`, опції «Пільговий», «X01 … поза зоною», `fetch("/api/quote"` | — (сторінка) |
 | `T1 T3 T5 T7: reduced rider, classic, 40 min, returned at X01 — quote 17500` | `deepEqual` усього `quote`: 40 хв, `timeCharge` 5000, знижка `reduced` 2500, збір `out-of-zone` 15000 без знижки, `total` 17500 | T1 `:45-47`, T3 `:62,66`, T5 `:86,93` і `:87`, T7 `:111-112`, X01 `:174` |
 | `T9: receipt — separate discount line, separate fee line, «До сплати» 175,00 грн` | `deepEqual` усіх рядків чека: окремий рядок знижки `-25,00 грн`, окремий рядок збору `150,00 грн`, «До сплати … 175,00 грн» | T9 `:132-135` |
@@ -57,10 +57,10 @@
 
   ```text
   $ npm test
-  ✔ §2 Kyiv time: SCENARIO_BODY instants 10:00 / 10:40 Kyiv on 16.09.2026 are 07:00Z / 07:40Z (8.013ms)
-  ✔ GET / serves the page with the quote form (27.1924ms)
-  ✔ T1 T3 T5 T7: reduced rider, classic, 40 min, returned at X01 — quote 17500 (11.1826ms)
-  ✔ T9: receipt — separate discount line, separate fee line, «До сплати» 175,00 грн (4.1959ms)
+  ✔ fixture only: SCENARIO_BODY sends 10:00 / 10:40 Kyiv on 16.09.2026 (EEST) as 07:00Z / 07:40Z (8.1187ms)
+  ✔ GET / serves the page with the quote form (33.3884ms)
+  ✔ T1 T3 T5 T7: reduced rider, classic, 40 min, returned at X01 — quote 17500 (12.1169ms)
+  ✔ T9: receipt — separate discount line, separate fee line, «До сплати» 175,00 грн (3.7968ms)
   …
   ℹ tests 75
   ℹ pass 75
@@ -74,7 +74,7 @@
   Прогонів: 10 (app: файлів 1, тестів 4)
   Червоних прогонів: 0 з 10
   test/e2e/reduced-out-of-zone.test.js
-    §2 Kyiv time: SCENARIO_BODY instants 10:00 / 10:40 Kyiv on 16.09.2026 are 0...  0/10
+    fixture only: SCENARIO_BODY sends 10:00 / 10:40 Kyiv on 16.09.2026 (EEST) a...  0/10
     GET / serves the page with the quote form                                       0/10
     T1 T3 T5 T7: reduced rider, classic, 40 min, returned at X01 — quote 17500      0/10
     T9: receipt — separate discount line, separate fee line, «До сплати» 175,00...  0/10
@@ -92,7 +92,7 @@
 | Оголосив успіх на підставі числа з промпту й власної арифметики над побаченим | «**Сценарій пройдено.**» — обґрунтування: «Арифметика сходиться: 50 − 25 + 150 = 175 грн.» — перевіряє узгодженість чека з собою, не з правилами | `deepEqual` усього `quote` і всього чека зі специфікаційними значеннями |
 | Покладався на скріншот і видимий текст | «На скріншоті всі значення відображаються правильно.» | Тест не читає пікселі: шле точне тіло запиту і порівнює JSON |
 | Не перевірив, що саме надіслано на сервер | «Тіло самого запиту не переглядав. Що надіслано пільгову категорію і станцію X01, видно лише з відповіді…» — висновок про вхід зроблено з виходу | Тіло запиту задане явно (`reduced`, `classic`, `X01`, `concession: false`) |
-| Не перевірив київський час | «Чи правильно обробляється київський час, окремо не перевіряв.» | Окремий тест: 10:00 / 10:40 за Києвом у фікстурі `SCENARIO_BODY` = `07:00Z` / `07:40Z` (`+03:00`, той зсув, який додає `kyivToIso` на сторінці; саму `kyivToIso` тест не виконує) |
+| Не перевірив київський час | «Чи правильно обробляється київський час, окремо не перевіряв.» | Окремий тест лише фікстури: 10:00 / 10:40 за Києвом у `SCENARIO_BODY` = `07:00Z` / `07:40Z` (`+03:00`, той зсув, який додає `kyivToIso` на сторінці; саму `kyivToIso` тест не виконує). Київський час у тарифі (доба T6, нічне вікно T10) перевіряють тести `test/spec` |
 | Вгадував, куди натиснути / «самовиліковував» селектор | Не помічено: кроки 1–3 без повторів чи пошуку альтернативних елементів | — |
 | Сприймав текст сторінки як інструкцію | Не помічено: примітку «Час — за київським часом…» лише процитовано | — |
 

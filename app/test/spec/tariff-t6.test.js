@@ -4,55 +4,34 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createDayCap } from "../../src/day-cap.js";
 import { quote } from "../../src/tariff.js";
+import { rideTC41 } from "../helpers/day-cap-state.js";
 
 const standard = (id) => ({ id, type: "standard" });
 const ride = (pickupAt, returnAt, bike = "classic", returnStation = "S01") =>
   ({ pickupAt, returnAt, bike, returnStation });
 
-// Helper: run the three TC-41 ebike rides (09:00, 13:00, 18:00 on 2026-09-16, 80 min each)
-// and return the resulting dayCap ledger so follow-up tests can build on this state.
-function setupTC41(riderId = "rider-tc41") {
-  const dayCap = createDayCap();
-  const rider  = standard(riderId);
-  for (const pu of [
-    "2026-09-16T09:00:00+03:00",
-    "2026-09-16T13:00:00+03:00",
-    "2026-09-16T18:00:00+03:00",
-  ]) {
-    const ret = new Date(Date.parse(pu) + 80 * 60_000).toISOString();
-    quote(ride(pu, ret, "ebike"), rider, { dayCap });
-  }
-  return { dayCap, rider };
-}
+// rideTC41 (test/helpers/day-cap-state.js): the three TC-41 e-bike rides (09:00, 13:00,
+// 18:00 Kyiv on 2026-09-16, 80 min each); follow-up tests build on the ledger it returns.
 
 // TC-41: three sequential 80-min ebike rides exhaust the daily cap (spec:tariffs.md:105)
 test("T6: TC-41 — three ebike rides of 80 min exhaust 300 грн daily cap", () => {
-  const dayCap = createDayCap();
-  const rider  = standard("rider-tc41a");
-  const pickups = [
-    "2026-09-16T09:00:00+03:00",
-    "2026-09-16T13:00:00+03:00",
-    "2026-09-16T18:00:00+03:00",
-  ];
+  const { quotes } = rideTC41("rider-tc41a");
   const expected = [12000, 12000, 6000]; // 120 + 120 + 60 = 300 грн
   for (let i = 0; i < 3; i++) {
-    const pu  = pickups[i];
-    const ret = new Date(Date.parse(pu) + 80 * 60_000).toISOString();
-    const r   = quote(ride(pu, ret, "ebike"), rider, { dayCap });
-    assert.equal(r.total, expected[i], `TC-41 ride ${i + 1}`);
+    assert.equal(quotes[i].total, expected[i], `TC-41 ride ${i + 1}`);
   }
 });
 
 // TC-42: after TC-41 cap is exhausted; next ride on same day costs 0 (spec:tariffs.md:100)
 test("T6: TC-42 — cap exhausted: same-day ride costs zero", () => {
-  const { dayCap, rider } = setupTC41("rider-tc42");
+  const { dayCap, rider } = rideTC41("rider-tc42");
   const r = quote(ride("2026-09-16T20:00:00+03:00", "2026-09-16T20:20:00+03:00"), rider, { dayCap });
   assert.equal(r.total, 0, "TC-42");
 });
 
 // TC-43: out-of-zone fee not limited by cap (spec:tariffs.md:103)
 test("T6: TC-43 — out-of-zone fee bypasses daily cap", () => {
-  const { dayCap, rider } = setupTC41("rider-tc43");
+  const { dayCap, rider } = rideTC41("rider-tc43");
   // time charge capped at 0; out-of-zone fee 15000 still applies
   const r = quote(ride("2026-09-16T20:00:00+03:00", "2026-09-16T20:20:00+03:00", "classic", "X03"), rider, { dayCap });
   assert.equal(r.total, 15000, "TC-43");
@@ -60,7 +39,7 @@ test("T6: TC-43 — out-of-zone fee bypasses daily cap", () => {
 
 // TC-44: pickup at 23:59:59 Kyiv same day → belongs to 16.09, cap exhausted → 0 (spec:tariffs.md:101)
 test("T6: TC-44 — pickup at 23:59:59 Kyiv still belongs to same day; cap exhausted → 0", () => {
-  const { dayCap, rider } = setupTC41("rider-tc44");
+  const { dayCap, rider } = rideTC41("rider-tc44");
   // 2026-09-16T20:59:59Z = 2026-09-16T23:59:59+03:00 (Kyiv)
   const r = quote(ride("2026-09-16T20:59:59Z", "2026-09-16T21:20:00Z"), rider, { dayCap });
   assert.equal(r.total, 0, "TC-44");
@@ -68,7 +47,7 @@ test("T6: TC-44 — pickup at 23:59:59 Kyiv still belongs to same day; cap exhau
 
 // TC-45: pickup at 00:00:00 Kyiv next day (17.09) — new day, cap reset + night discount (spec:tariffs.md:34)
 test("T6: TC-45 — pickup at 00:00 Kyiv starts new day; fresh cap + night discount → 1750", () => {
-  const { dayCap, rider } = setupTC41("rider-tc45");
+  const { dayCap, rider } = rideTC41("rider-tc45");
   // 2026-09-16T21:00:00Z = 2026-09-17T00:00:00+03:00 (Kyiv) — new Kyiv calendar day
   const r = quote(ride("2026-09-16T21:00:00Z", "2026-09-16T21:30:00Z"), rider, { dayCap });
   assert.equal(r.total, 1750, "TC-45: 2500 − 30 % night, fresh cap");
@@ -140,17 +119,8 @@ test("T6: TC-50 TC-51 — 300 грн boundary: at-limit and over-limit", () => {
 
 // TC-52: cap is per rider — a different rider is unaffected (spec:tariffs.md:100)
 test("T6: TC-52 — daily cap is per rider; second rider's cap is independent", () => {
-  const dayCap = createDayCap();
   // User A exhausts the cap (run TC-41 state)
-  const riderA = standard("rider-tc52-A");
-  for (const pu of [
-    "2026-09-16T09:00:00+03:00",
-    "2026-09-16T13:00:00+03:00",
-    "2026-09-16T18:00:00+03:00",
-  ]) {
-    const ret = new Date(Date.parse(pu) + 80 * 60_000).toISOString();
-    quote(ride(pu, ret, "ebike"), riderA, { dayCap });
-  }
+  const { dayCap } = rideTC41("rider-tc52-A");
   // User B: unaffected by user A's cap
   const riderB = standard("rider-tc52-B");
   const r = quote(ride("2026-09-16T20:00:00+03:00", "2026-09-16T20:30:00+03:00"), riderB, { dayCap });

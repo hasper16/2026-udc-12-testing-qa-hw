@@ -25,6 +25,8 @@ before(async () => {
 
 after(async () => {
   server.close();
+  // fetch keeps idle keep-alive sockets; close them explicitly so "close" always fires.
+  server.closeIdleConnections();
   await once(server, "close");
 });
 
@@ -50,10 +52,11 @@ async function postScenarioQuote() {
   return { status: response.status, json: await response.json() };
 }
 
-test("§2 Kyiv time: SCENARIO_BODY instants 10:00 / 10:40 Kyiv on 16.09.2026 are 07:00Z / 07:40Z", () => {
+test("fixture only: SCENARIO_BODY sends 10:00 / 10:40 Kyiv on 16.09.2026 (EEST) as 07:00Z / 07:40Z", () => {
   // tariffs.md:37 — all times are Europe/Kyiv; September is EEST = UTC+3.
-  // Checks the fixture this file sends, not the page: kyivToIso() in public/index.html runs only
-  // on form submit, and no test here fills the form.
+  // Checks only the fixture this file sends — neither app/src nor the page: kyivToIso() in
+  // public/index.html runs only on form submit, and no test here fills the form. Kyiv time in
+  // the tariff is tested in test/spec (T6, T10).
   assert.equal(new Date(SCENARIO_BODY.ride.pickupAt).toISOString(), "2026-09-16T07:00:00.000Z");
   assert.equal(new Date(SCENARIO_BODY.ride.returnAt).toISOString(), "2026-09-16T07:40:00.000Z");
 });

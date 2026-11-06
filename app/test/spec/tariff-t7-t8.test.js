@@ -2,8 +2,8 @@
 // Expected values: docs/test-cases.md, docs/spec/tariffs.md
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createDayCap } from "../../src/day-cap.js";
 import { quote } from "../../src/tariff.js";
+import { rideTC41 } from "../helpers/day-cap-state.js";
 
 const standard    = { type: "standard" };
 const subscriber  = { type: "subscriber" };
@@ -102,19 +102,7 @@ test("T8: TC-64 — subscriber 25-hour ride: 49 paid blocks → cap 30000 + unre
 
 // T8 — TC-65: cap exhausted on day of pickup; unreturned fee not capped (spec:tariffs.md:103)
 test("T8: TC-65 — cap exhausted (after TC-41) + unreturned fee: time 0, fee 200000", () => {
-  const { dayCap, rider } = (() => {
-    const dayCap = createDayCap();
-    const rider  = { id: "rider-tc65", type: "standard" };
-    for (const pu of [
-      "2026-09-16T09:00:00+03:00",
-      "2026-09-16T13:00:00+03:00",
-      "2026-09-16T18:00:00+03:00",
-    ]) {
-      const ret = new Date(Date.parse(pu) + 80 * 60_000).toISOString();
-      quote({ pickupAt: pu, returnAt: ret, bike: "ebike", returnStation: "S01" }, rider, { dayCap });
-    }
-    return { dayCap, rider };
-  })();
+  const { dayCap, rider } = rideTC41("rider-tc65");
 
   const r = quote(
     { pickupAt: "2026-09-16T20:00:00+03:00", returnAt: "2026-09-17T21:00:00+03:00", bike: "classic", returnStation: "S01" },

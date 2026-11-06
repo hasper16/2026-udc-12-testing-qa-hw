@@ -8,9 +8,10 @@ const standard = { type: "standard" };
 const ride = (pickupAt, returnAt, bike = "classic", returnStation = "S01") =>
   ({ pickupAt, returnAt, bike, returnStation });
 
-// T10 — TC-72 to TC-77: various night and day rides (spec:tariffs.md:141,143)
-// Key: discount applies when pickup is in [00:00, 06:00) Kyiv wall-clock time
-test("T10: TC-72 to TC-77 — night window [00:00, 06:00) Kyiv: 30 % discount", () => {
+// T10 — TC-72 to TC-77, TC-89, TC-90: night and day rides (spec:tariffs.md:141,143)
+// Every ride lies wholly inside or wholly outside 00:00–06:00 Kyiv, so the expected value
+// does not depend on Q-1 (rides across 00:00 / 06:00) or Q-2 (06:00:00 itself).
+test("T10: TC-72 to TC-77, TC-89, TC-90 — night window 00:00–06:00 Kyiv: 30 % discount", () => {
   for (const { id, pickupAt, returnAt, bike, expTotal } of [
     // 01:10–01:40 Kyiv → 2500 − 30%
     { id: "TC-72", pickupAt: "2026-09-16T01:10:00+03:00", returnAt: "2026-09-16T01:40:00+03:00", bike: "classic", expTotal: 1750 },
@@ -20,6 +21,10 @@ test("T10: TC-72 to TC-77 — night window [00:00, 06:00) Kyiv: 30 % discount", 
     { id: "TC-74", pickupAt: "2026-09-16T05:29:00+03:00", returnAt: "2026-09-16T05:59:00+03:00", bike: "classic", expTotal: 1750 },
     // 23:29–23:59 Kyiv → outside window → no discount
     { id: "TC-75", pickupAt: "2026-09-16T23:29:00+03:00", returnAt: "2026-09-16T23:59:00+03:00", bike: "classic", expTotal: 2500 },
+    // 23:29:59–23:59:59 Kyiv EEST (20:29:59Z–20:59:59Z) → ends at the last second before 00:00 → no discount
+    { id: "TC-89", pickupAt: "2026-09-16T20:29:59Z",      returnAt: "2026-09-16T20:59:59Z",      bike: "classic", expTotal: 2500 },
+    // 00:00:00–00:30 Kyiv EET on 10.11 (22:00Z–22:30Z on 09.11 — UTC date differs) → 2500 − 30%
+    { id: "TC-90", pickupAt: "2026-11-09T22:00:00Z",      returnAt: "2026-11-09T22:30:00Z",      bike: "classic", expTotal: 1750 },
     // 10:00–10:30 Kyiv → day → no discount
     { id: "TC-76", pickupAt: "2026-09-16T10:00:00+03:00", returnAt: "2026-09-16T10:30:00+03:00", bike: "classic", expTotal: 2500 },
     // ebike 02:00–02:30 → 4000 − 30%
